@@ -1,43 +1,36 @@
 const express = require('express');
-const router = express.Router();
+const app = express()
+
 const Subscriber = require('./models/subscribers');
+const ObjectId = require("mongoose");
 
-// GET /subscribers
-router.get('/subscribers', async (req, res) => {
-  try {
-    const subscribers = await Subscriber.find();
-    res.send(subscribers);
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+
+app.get('/subscribers', (req, res) => {
+    Subscriber.find().then(subscribers => res.send(subscribers));
+    return;
+});
+app.get('/subscribers/names', (req, res) => {
+    Subscriber.find().select({name: 1, subscribedChannel: 1}).then(subscribers => res.send(subscribers));
+    return;
+});
+app.get('/subscribers/:id', (req, res) => {
+    const id = req.params.id;
+    Subscriber.find({_id : id}).then(subscribers => subscribers.map(subscribers => res.send(subscribers))).catch(error => res.status(400).send({message: error.message}));
+    return;
 });
 
-// GET /subscribers/names
-router.get('/subscribers/names', async (req, res) => {
-  try {
-    const subscribers = await Subscriber.find({}, { name: 1, subscribedChannel: 1 });
-    res.send(subscribers);
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
-});
 
-// GET /subscribers/:id
-router.get('/subscribers/:id', getSubscriber, (req, res) => {
-  res.send(res.subscriber);
-});
 
-async function getSubscriber(req, res, next) {
-  try {
-    const subscriber = await Subscriber.findById(req.params.id);
-    if (subscriber == null) {
-      return res.status(400).send({ message: 'Cannot find subscriber' });
-    }
-    res.subscriber = subscriber;
-    next();
-  } catch (err) {
-    return res.status(500).send({ message: err.message });
-  }
-}
 
-module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+module.exports = app;
